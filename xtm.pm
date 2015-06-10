@@ -99,7 +99,7 @@ TOP: while (<$INPUT>) {
 #	}
 	while (/\s*($cmds_regexp)\s*$/) {
 	    $cmd = $1;
-	    $prompt = ":~";
+	    $prompt = ">>";
 
 	    if (!defined($prompt)) {
 		$prompt = ($_ =~ /^([^>]+>)/)[0];

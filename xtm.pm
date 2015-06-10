@@ -96,7 +96,7 @@ TOP: while (<$INPUT>) {
 #	    print STDERR ("$host mgd version mismatch: $_") if ($debug);
 #	    $clean_run = 0;
 #	    last;
-	}
+#	}
 	while (/\s*($cmds_regexp)\s*$/) {
 	    $cmd = $1;
 	    $prompt = ":~";

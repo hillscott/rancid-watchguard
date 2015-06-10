@@ -1,11 +1,9 @@
-package vyos;
-##
-## $Id: vyos.pm.in 2804 2014-03-19 00:27:18Z heas $
-##
+package xtm;
 ## rancid 3.1
 ## Copyright (c) 1997-2014 by Terrapin Communications, Inc.
 ## All rights reserved.
 ##
+## Modified from VyOS code to work with Watchguard Firewatch Firewalls
 ## This code is derived from software contributed to and maintained by
 ## Terrapin Communications, Inc. by Henry Kilmer, John Heasley, Andrew Partan,
 ## Pete Whiting, Austin Schutz, and Andrew Fort.
@@ -42,7 +40,7 @@ package vyos;
 # 
 #  RANCID - Really Awesome New Cisco confIg Differ
 #
-#  vyos.pm - Vyatta VyOS rancid procedures
+#  xtm.pm - Watchguard Firewatch rancid procedures
 #
 
 use 5.005;
@@ -61,7 +59,7 @@ use rancid;
 
 # load-time initialization
 sub import {
-    $timeo = 120;			# vlogin timeout in seconds
+    $timeo = 120;			# xtmlogin timeout in seconds
 
     0;
 }
@@ -82,22 +80,22 @@ sub inloop {
 TOP: while (<$INPUT>) {
 	tr/\015//d;
 	if (/^Error:/) {
-	    print STDOUT ("$host vlogin error: $_");
-	    print STDERR ("$host vlogin error: $_") if ($debug);
+	    print STDOUT ("$host xtmlogin error: $_");
+	    print STDERR ("$host xtmlogin error: $_") if ($debug);
 	    $clean_run=0;
 	    last;
 	}
-	if (/System shutdown message/) {
-	    print STDOUT ("$host shutdown msg: $_");
-	    print STDERR ("$host shutdown msg: $_") if ($debug);
-	    $clean_run = 0;
-	    last;
-	}
-	if (/error: cli version does not match Managment Daemon/i) {
-	    print STDOUT ("$host mgd version mismatch: $_");
-	    print STDERR ("$host mgd version mismatch: $_") if ($debug);
-	    $clean_run = 0;
-	    last;
+#	if (/System shutdown message/) {
+#	    print STDOUT ("$host shutdown msg: $_");
+#	    print STDERR ("$host shutdown msg: $_") if ($debug);
+#	    $clean_run = 0;
+#	    last;
+#	}
+#	if (/error: cli version does not match Managment Daemon/i) {
+#	    print STDOUT ("$host mgd version mismatch: $_");
+#	    print STDERR ("$host mgd version mismatch: $_") if ($debug);
+#	    $clean_run = 0;
+#	    last;
 	}
 	while (/\s*($cmds_regexp)\s*$/) {
 	    $cmd = $1;
@@ -129,54 +127,54 @@ TOP: while (<$INPUT>) {
 }
 
 # This routine parses "show hardware"
-sub ShowHardware {
-    my($INPUT, $OUTPUT, $cmd) = @_;
-    print STDERR "    In ShowHardware: $_" if ($debug);
-
-    s/^[a-z]+@//;
-    ProcessHistory("","","","# $_");
-    while (<$INPUT>) {
-	tr/\015//d;
-	last if (/$prompt/);
-	return 1 if (/^aborted!/i);
-	next if (/^system (shutdown message from|going down )/i);
-	next if (/^\{(master|backup)(:\d+)?\}/);
-	next if (/^show/);
-
-	/Couldn\'t initiate connection/ && return(-1);
-	/Unrecognized command/ && return(1);
-	/command is not valid/ && return(1);
-	/^\s+\^/ && return(1);
-	/syntax error/ && return(1);
-
-	ProcessHistory("","","","# $_");
-    }
-    return(0);
-}
+#sub ShowHardware {
+#    my($INPUT, $OUTPUT, $cmd) = @_;
+#    print STDERR "    In ShowHardware: $_" if ($debug);
+#
+#    s/^[a-z]+@//;
+#    ProcessHistory("","","","# $_");
+#    while (<$INPUT>) {
+#	tr/\015//d;
+#	last if (/$prompt/);
+#	return 1 if (/^aborted!/i);
+#	next if (/^system (shutdown message from|going down )/i);
+#	next if (/^\{(master|backup)(:\d+)?\}/);
+#	next if (/^show/);
+#
+#	/Couldn\'t initiate connection/ && return(-1);
+#	/Unrecognized command/ && return(1);
+#	/command is not valid/ && return(1);
+#	/^\s+\^/ && return(1);
+#	/syntax error/ && return(1);
+#
+#	ProcessHistory("","","","# $_");
+#    }
+#    return(0);
+#}
 
 # This routine parses "show version"
-sub ShowVersion {
-    my($INPUT, $OUTPUT, $cmd) = @_;
-    print STDERR "    In ShowVersion: $_" if ($debug);
-
-    s/^[a-z]+@//;
-    ProcessHistory("","","","# $_");
-    while (<$INPUT>) {
-	tr/\015//d;
-	last if (/$prompt/);
-	next if (/^\s*$/);
-	next if (/^system (shutdown message from|going down )/i);
-	next if (/^\{(master|backup)(:\d+)?\}/);
-	next if (/^uptime/i);
-	next if (/^show/);
-	/# error: abnormal / && return(-1);
-
-	ProcessHistory("","","","# $_");
-    }
-    ProcessHistory("","","","#\n");
-
-    return(0);
-}
+#sub ShowVersion {
+#    my($INPUT, $OUTPUT, $cmd) = @_;
+#    print STDERR "    In ShowVersion: $_" if ($debug);
+#
+#    s/^[a-z]+@//;
+#    ProcessHistory("","","","# $_");
+#    while (<$INPUT>) {
+#	tr/\015//d;
+#	last if (/$prompt/);
+#	next if (/^\s*$/);
+#	next if (/^system (shutdown message from|going down )/i);
+#	next if (/^\{(master|backup)(:\d+)?\}/);
+#	next if (/^uptime/i);
+#	next if (/^show/);
+#	/# error: abnormal / && return(-1);
+#
+#	ProcessHistory("","","","# $_");
+#    }
+#    ProcessHistory("","","","#\n");
+#
+#    return(0);
+#}
 
 # This routine parses "show configuration"
 sub ShowConfiguration {
@@ -184,21 +182,28 @@ sub ShowConfiguration {
     my($lines) = 0;
     my($snmp) = 0;
     print STDERR "    In ShowConfiguration: $_" if ($debug);
-
+    # We don't care about password filtering as passwords are hashed
+    # So don't use this if you need it (or develop the functionality).
+    if ($filter_pwds >= 1){
+        printf(STDERR "ERROR: Password filtering isn't implemented yet!\n";
+        printf(STDERR "Either disable password filtering in rancid.conf";
+        printf(STDERR " or don't use this plugin.\n";
+        return(-1);
+    }
     s/^[a-z]+@//;
     ProcessHistory("","","","# $_");
     while (<$INPUT>) {
 	tr/\015//d;
 	next if (/^\s*$/);
-	# end of config - hopefully.  VyOS does not have a reliable
+	# end of config - hopefully.
 	# end-of-config tag.  appears to end with "\nPROMPT:~$".
 	if (/$prompt/) {
 	    $found_end++;
 	    last;
 	}
-	next if (/^system (shutdown message from|going down )/i);
-	next if (/^\{(master|backup)(:\d+)?\}/);
-	next if (/^\{(primary|secondary)(:\d+)?\}/);
+#	next if (/^system (shutdown message from|going down )/i);
+#	next if (/^\{(master|backup)(:\d+)?\}/);
+#	next if (/^\{(primary|secondary)(:\d+)?\}/);
 	next if (/^show/);
 	next if (/^exit/);
 
@@ -210,57 +215,64 @@ sub ShowConfiguration {
 	s/ # SECRET-DATA$//;
 	s/ ## SECRET-DATA$//;
 	# filter snmp community, when in snmp { stanza }
-	/^\s*snmp/ && $snmp++;
-	/^}/ && ($snmp = 0);
-	if ($snmp && /^(\s*)(community|trap-group) [^ ;]+(\s?[;{])$/) {
-		if ($filter_commstr) {
-		    $_ = "$1$2 \"<removed>\"$3\n";
-		}
-	}
-
-	if (/^(.* snmp community) [^ ;]+(\s?.*)$/) {
-		if ($filter_commstr) {
-		    $_ = "$1 \"<removed>\"$2\n";
-		}
-	}
-	if (/^(.* snmp .*-key) [^ ;]+(\s?.*)$/) {
-		if ($filter_commstr) {
-		    $_ = "$1 \"<removed>\"$2\n";
-		}
-	}
-	if (/(\s*authentication-key )[^ ;]+/ && $filter_pwds >= 1) {
-	    ProcessHistory("","","","#$1<removed>$'");
-	    next;
-	}
-	if (/(\s*md5 \d+ key )[^ ;]+/ && $filter_pwds >= 1) {
-	    ProcessHistory("","","","#$1<removed>$'");
-	    next;
-	}
-	if (/(\s*hello-authentication-key )[^ ;]+/ && $filter_pwds >= 1) {
-	    ProcessHistory("","","","#$1<removed>$'");
-	    next;
-	}
+#	/^\s*snmp/ && $snmp++;
+#	/^}/ && ($snmp = 0);
+#	if ($snmp && /^(\s*)(community|trap-group) [^ ;]+(\s?[;{])$/) {
+#		if ($filter_commstr) {
+#		    $_ = "$1$2 \"<removed>\"$3\n";
+#		}
+#	}
+#
+#	if (/^(.* snmp community) [^ ;]+(\s?.*)$/) {
+#		if ($filter_commstr) {
+#		    $_ = "$1 \"<removed>\"$2\n";
+#		}
+#	}
+#	if (/^(.* snmp .*-key) [^ ;]+(\s?.*)$/) {
+#		if ($filter_commstr) {
+#		    $_ = "$1 \"<removed>\"$2\n";
+#		}
+#	}
+#	if (/(\s*authentication-key )[^ ;]+/ && $filter_pwds >= 1) {
+#	    ProcessHistory("","","","#$1<removed>$'");
+#	    next;
+#	}
+#	if (/(\s*md5 \d+ key )[^ ;]+/ && $filter_pwds >= 1) {
+#	    ProcessHistory("","","","#$1<removed>$'");
+#	    next;
+#	}
+#	if (/(\s*hello-authentication-key )[^ ;]+/ && $filter_pwds >= 1) {
+#	    ProcessHistory("","","","#$1<removed>$'");
+#	    next;
+#	}
 	# don't filter this one - there is no secret here.
-	if (/^\s*permissions .* secret /) {
-	    ProcessHistory("","","","$_");
-	    next;
-	}
-	if (/^(.*\ssecret )[^ ;]+/ && $filter_pwds >= 1) {
-	    ProcessHistory("","","","#$1<removed>$'");
-	    next;
-	}
-	if (/(.* encrypted-password )[^ ;]+/ && $filter_pwds >= 2) {
-	    ProcessHistory("","","","#$1<removed>\n");
-	    next;
-	}
-	if (/(\s+ssh-(rsa|dsa) )\"/ && $filter_pwds >= 2) {
-	    ProcessHistory("","","","#$1<removed>;\n");
-	    next;
-	}
-	if (/^(\s+(pre-shared-|)key (ascii-text|hexadecimal) )[^ ;]+/ && $filter_pwds >= 1) {
-	    ProcessHistory("","","","#$1<removed>$'");
-	    next;
-	}
+#	if (/^\s*permissions .* secret /) {
+#	    ProcessHistory("","","","$_");
+#	    next;
+#	}
+#	if (/^(.*\ssecret )[^ ;]+/ && $filter_pwds >= 1) {
+#	    ProcessHistory("","","","#$1<removed>$'");
+#	    next;
+#	}
+#	if (/(.* encrypted-password )[^ ;]+/ && $filter_pwds >= 2) {
+#	    ProcessHistory("","","","#$1<removed>\n");
+#	    next;
+#	}
+# Added for Firewatch Log Server encrypted passphrase (not finished)
+#	/\s*\<common-logging/ && $commonLogging++;
+#	/\/common-logging\>/ && ($commonLogging = 0);
+#	if ($commonLogging && /(.*password\>)[^ ;]+/ && $filter_pwds >= 2) {
+#	    ProcessHistory("","","","#$1<removed>\n");
+#	    next;
+#	}
+#	if (/(\s+ssh-(rsa|dsa) )\"/ && $filter_pwds >= 2) {
+#	    ProcessHistory("","","","#$1<removed>;\n");
+#	    next;
+#	}
+#	if (/^(\s+(pre-shared-|)key (ascii-text|hexadecimal) )[^ ;]+/ && $filter_pwds >= 1) {
+#	    ProcessHistory("","","","#$1<removed>$'");
+#	    next;
+#	}
 	ProcessHistory("","","","$_");
     }
 

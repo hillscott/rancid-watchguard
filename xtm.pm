@@ -185,9 +185,9 @@ sub ShowConfiguration {
     # We don't care about password filtering as passwords are hashed
     # So don't use this if you need it (or develop the functionality).
     if ($filter_pwds >= 1){
-        printf(STDERR "ERROR: Password filtering isn't implemented yet!\n";
-        printf(STDERR "Either disable password filtering in rancid.conf";
-        printf(STDERR " or don't use this plugin.\n";
+        print STDERR "ERROR: Password filtering isn't implemented yet!\n";
+        print STDERR "Either disable password filtering in rancid.conf";
+        print STDERR " or don't use this plugin.\n";
         return(-1);
     }
     s/^[a-z]+@//;

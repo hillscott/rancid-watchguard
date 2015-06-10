@@ -1,4 +1,4 @@
-RANCID Scripts for Watchguard XTM Firewalls
+RANCID Scripts for Watchguard Fireware Firewalls
 ======
 
 Watchguard scripts for Rancid.  Forked from

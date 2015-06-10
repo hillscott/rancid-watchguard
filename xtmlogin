@@ -2,9 +2,10 @@
 ##
 ##
 ## rancid 3.1
-## Copyright (c) 1997-2014 by Terrapin Communications, Inc.
+## Copyright (c) 2015 MIS Department, Inc.
 ## All rights reserved.
-##
+## Author: Ian Reynolds
+## Forked from https://bitbucket.org/aquerubin/rancid-vyatta
 
 # Usage line
 set usage "Usage: $argv0 \[-dSV\] \[-c command\] \[-Evar=x\] \
@@ -260,7 +261,7 @@ proc login { router user passwd cmethod cyphertype identfile} {
 		send_user "\nError: telnet failed: $reason\n"
 		return 1
 	    }
-	} elseif ![string compare $prog "ssh"] {
+	} elseif [string match "ssh*" $prog] {
 	    # ssh to the router & try to login with or without an identfile.
 	    # We use two calls to spawn since spawn does not seem to parse
 	    # spaces correctly.
@@ -432,7 +433,7 @@ foreach router [lrange $argv $i end] {
 	set timeout $timeoutdflt
     }
 
-    set prompt ":"
+    set prompt ">>"
 
     # Figure out username
     if {[info exists username]} {

@@ -1,5 +1,7 @@
 RANCID Scripts for Watchguard Fireware Firewalls
 ======
+Created by Ian Reynolds
+MIS Department Inc.
 
 Watchguard scripts for Rancid.  Forked from
 https://bitbucket.org/aquerubin/rancid-vyatta, https://github.com/damianfantini/rancid and https://github.com/natecarlson/vyatta-rancid
